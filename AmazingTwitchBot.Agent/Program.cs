@@ -2,34 +2,35 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+
 
 using AmazingTwitchBot.Agent.Models.Configuration;
-using Microsoft.Extensions.Options;
+
 
 namespace AmazingTwitchBot.Agent
 {
     public class Program
     {
+        // link to inspiration TwitchBot https://github.com/kasuken/SonequaBot (super straightforward/small example)
+
         ////credentials (suppressed for privacy)
         //private static string login_name = "<LOGIN_NAME>";
         //private static string token = Environment.GetEnvironmentVariable("Token");  //Token should be stored in a safe place
         //private static List<string> channels_to_join = new List<string>(new string[] { "<CHANNEL_1>", "<CHANNEL_2>" });
 
         //main function
-            public static void Main(string[] args)
+        public static void Main(string[] args)
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
+                //.AddEnvironmentVariables()
                 .AddUserSecrets<Program>()
-                .AddCommandLine(args)
+                //.AddCommandLine(args)
                 .Build();
 
             IServiceCollection services = new ServiceCollection();
             services.Configure<TwitchConfiguration>(configuration.GetSection(nameof(TwitchConfiguration)));
-
-
-            services.AddOptions();
 
             var serviceProvider = services.BuildServiceProvider();
 
