@@ -31,6 +31,7 @@ namespace AmazingTwitchBot.Agent
 
             IServiceCollection services = new ServiceCollection();
             services.Configure<TwitchConfiguration>(configuration.GetSection(nameof(TwitchConfiguration)));
+            services.AddSingleton<TwitchChatBot>();
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -40,11 +41,15 @@ namespace AmazingTwitchBot.Agent
             //Foo foo = serviceProvider.GetService<Foo>();
             //ConfigFoo configfoo = serviceProvider.GetService<IOptions<ConfigFoo>>().Value;
 
-            TwitchConfiguration twitchConfiguration = serviceProvider.GetService<IOptions<TwitchConfiguration>>().Value;
+            //TwitchConfiguration twitchConfiguration = serviceProvider.GetService<IOptions<TwitchConfiguration>>().Value;
 
+            TwitchChatBot twitchChatBot = serviceProvider.GetService<TwitchChatBot>();
 
-
+            twitchChatBot.Connect();
             Console.ReadLine();
+
+            twitchChatBot.Disconnect();
+
         }
     }
 }

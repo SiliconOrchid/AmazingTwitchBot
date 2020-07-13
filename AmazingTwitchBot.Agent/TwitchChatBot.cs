@@ -1,154 +1,286 @@
-﻿//using System;
-//using System.IO;
-//using System.Net.Sockets;
+﻿using AmazingTwitchBot.Agent.Models.Configuration;
+using AmazingTwitchBot.Agent.Rules;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using TwitchLib.Api;
+using TwitchLib.Client;
+using TwitchLib.Client.Models;
+
+namespace AmazingTwitchBot.Agent
+{
+
+    public class TwitchChatBot
+    {
+        private readonly List<IChatMessageRule> _listChatMessageRules;
 
 
-//namespace AmazingTwitchBot.Agent
+        private readonly ConnectionCredentials _connectionCredentials; 
+
+        private readonly TwitchConfiguration _twitchConfiguration;
+
+
+        TwitchClient client;
+        readonly TwitchAPI twitchAPI = new TwitchAPI();
+
+        string[] BotUsers = new string[] { "SO_Bot", "streamelements" };
+
+        List<string> UsersOnline = new List<string>();
+
+        public TwitchChatBot(IOptions<TwitchConfiguration> twitchConfiguration)
+        {
+            _twitchConfiguration = twitchConfiguration.Value;
+            _connectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername,_twitchConfiguration.BotToken);
+
+            _listChatMessageRules = new List<IChatMessageRule>();
+            _listChatMessageRules.Add(new HelloRule() );
+            _listChatMessageRules.Add(new ProjectRule());
+            _listChatMessageRules.Add(new RustySpoonsRule());
+            _listChatMessageRules.Add(new SurlyYouCantBeSeriousRule());
+            _listChatMessageRules.Add(new SurlyDevClipRule());
+            _listChatMessageRules.Add(new DestructoPupRule());
+            
+
+        }
+
+        internal void Connect()
+        {
+            Console.WriteLine("Connecting...");
+
+            twitchAPI.Settings.ClientId = _twitchConfiguration.ClientId;
+
+            InizializeBot();
+        }
+
+        private void InizializeBot()
+        {
+            client = new TwitchClient();
+
+            client.OnLog += Client_OnLog;
+            client.OnConnectionError += Client_OnConnectionError;
+            client.OnMessageReceived += Client_OnMessageReceived;
+            client.OnWhisperReceived += Client_OnWhisperReceived;
+            client.OnUserTimedout += Client_OnUserTimedout;
+            client.OnNewSubscriber += Client_OnNewSubscriber;
+            client.OnUserJoined += Client_OnUserJoined;
+            client.OnUserLeft += Client_OnUserLeft;
+
+            client.Initialize(_connectionCredentials, _twitchConfiguration.ChannelName);
+            client.Connect();
+
+            client.OnConnected += Client_OnConnected;
+        }
+
+        private void Client_OnConnected(object sender, TwitchLib.Client.Events.OnConnectedArgs e)
+        {
+            client.SendMessage(_twitchConfiguration.ChannelName, $"Hi to everyone. I am AmazingTwitchBot and I am alive. Again. Somehow.");
+        }
+
+        private void Client_OnNewSubscriber(object sender, TwitchLib.Client.Events.OnNewSubscriberArgs e)
+        {
+            client.SendMessage(_twitchConfiguration.ChannelName, $"Thank you for the subscription {e.Subscriber.DisplayName}!!! I really appreciate it!");
+        }
+
+        private void Client_OnUserTimedout(object sender, TwitchLib.Client.Events.OnUserTimedoutArgs e)
+        {
+            client.SendMessage(_twitchConfiguration.ChannelName, $"User {e.UserTimeout.Username} timed out.");
+        }
+
+        private void Client_OnWhisperReceived(object sender, TwitchLib.Client.Events.OnWhisperReceivedArgs e)
+        {
+            //client.SendWhisper(e.WhisperMessage.Username, $"your said: { e.WhisperMessage.Message}");
+        }
+
+        private void Client_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
+        {
+            IChatMessageRule rule = _listChatMessageRules.FirstOrDefault(rule => rule.IsTextMatched(e.ChatMessage.Message));
+
+            if(!(rule is null))
+            {
+                string returnedMessage = rule.ReturnedMessage(e);
+                client.SendMessage(_twitchConfiguration.ChannelName, returnedMessage);
+            }
+
+
+
+
+
+            //if (e.ChatMessage.Message.StartsWith("hi", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"Hey there { e.ChatMessage.DisplayName }.");
+
+            //}
+            //else 
+            if (e.ChatMessage.Message.StartsWith("!uptime", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var upTime = GetUpTime().Result;
+
+                client.SendMessage(_twitchConfiguration.ChannelName, upTime?.ToString() ?? "Offline");
+            }
+            //else if (e.ChatMessage.Message.StartsWith("!project", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"I'm working on {"revealing as many credentials to the internet as possible"}.");
+            //}
+            //else if (e.ChatMessage.Message.StartsWith("!rustyspoons", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"Surly likes rusty spoons");
+            //}
+
+            //else if (e.ChatMessage.Message.StartsWith("!surlyyoucantbeserious", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"Did you REALLY just clip that! !?!?!??");
+            //}
+
+            //else if (e.ChatMessage.Message.Contains("@surlydev", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"@SurlyDev did you clip that?!");
+            //}
+
+            //else if (e.ChatMessage.Message.Contains("!destructopup", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(_twitchConfiguration.ChannelName, $"Stop bloody destroying things!");
+            //}
+
+
+            //else if (e.ChatMessage.Message.StartsWith("!instagram", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Instagram: {TwitchInfo.Instagram}");
+            //}
+            //else if (e.ChatMessage.Message.StartsWith("!twitter", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Twitter: {TwitchInfo.Twitter}");
+            //}
+            //else if (e.ChatMessage.Message.StartsWith("!blog", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(TwitchInfo.ChannelName, $"My blog: {TwitchInfo.Blog}");
+            //}
+            //else if (e.ChatMessage.Message.StartsWith("!playlist", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(TwitchInfo.ChannelName, $"Playlist for my live on Twitch: {TwitchInfo.Playlist}");
+            //}
+            //else if (e.ChatMessage.Message.StartsWith("!discord", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    client.SendMessage(TwitchInfo.ChannelName, $"Vieni sul mio canale Discord: {TwitchInfo.Discord}");
+            //}
+        }
+
+        private async Task<TimeSpan?> GetUpTime()
+        {
+            var userId = await GetUserId(_twitchConfiguration.ChannelName);
+
+            return await twitchAPI.V5.Streams.GetUptimeAsync(userId);
+        }
+
+        async Task<string> GetUserId(string username)
+        {
+            var userList = await twitchAPI.V5.Users.GetUserByNameAsync(username);
+
+            return userList.Matches[0].Id;
+        }
+
+        private void Client_OnConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
+        {
+            Console.WriteLine(e.Error.Message);
+        }
+
+        private void Client_OnLog(object sender, TwitchLib.Client.Events.OnLogArgs e)
+        {
+            Console.WriteLine(e.Data);
+        }
+
+
+
+        void Client_OnUserJoined(object sender, TwitchLib.Client.Events.OnUserJoinedArgs e)
+        {
+            if (BotUsers.Contains(e.Username)) return;
+
+            try
+            {
+                //client.SendMessage(TwitchInfo.ChannelName, $"Welcome on my channel, { e.Username }.");
+
+                UsersOnline.Add(e.Username);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        void Client_OnUserLeft(object sender, TwitchLib.Client.Events.OnUserLeftArgs e)
+        {
+            UsersOnline.Remove(e.Username);
+        }
+
+        internal void Disconnect()
+        {
+            Console.WriteLine("Disconnecting...");
+        }
+
+    }
+}
+
+
+///FOR US TO PLAY WITH NEXT WEEK:
+//private void Client_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
 //{
-//    public class TwitchChatBot
+//    if (e.ChatMessage.Message.StartsWith("hi", StringComparison.InvariantCultureIgnoreCase))
 //    {
-//        //Props
-//        public TcpClient Client;
-//        public StreamReader Reader;
-//        public StreamWriter Writer;
-//        private string Login_Name { get; set; }
-//        private string Token { get; set; }
-//        private string Channel_To_Join { get; set; }
-
-//        //constructor
-//        public TwitchChatBot(string l, string t, string c)
-//        {
-//            this.Login_Name = l;
-//            this.Token = t;
-//            this.Channel_To_Join = c;
-//        }
-
-//        #region IRC
-//        /// <summary>
-//        /// Makes an IRC connection to Twitch
-//        /// </summary>
-//        /// <returns>void</returns>
-//        public void Connect()
-//        {
-//            Client = new TcpClient("irc.twitch.tv", 6667);
-//            Reader = new StreamReader(Client.GetStream());
-//            Writer = new StreamWriter(Client.GetStream());
-
-//            Writer.WriteLine("PASS " + Token);
-//            Writer.WriteLine("NICK " + Login_Name);
-//            Writer.WriteLine("USER " + Login_Name + " 8 * :" + Login_Name);
-//            Writer.WriteLine("JOIN #" + Channel_To_Join);
-//            Writer.Flush();
-//        }
-
-//        /// <summary>
-//        /// Reads a message from the chat of the channel you're joined to
-//        /// </summary>
-//        /// <returns>string</returns>
-//        public string ReadMessage()
-//        {
-//            string chat_message = Reader.ReadLine();
-//            return chat_message;
-//        }
-
-//        /// <summary>
-//        /// Sends a message in the chat of the channel you're joined to
-//        /// </summary>
-//        /// <param name="message"></param>
-//        /// <returns>void</returns>
-//        public void SendMessage(string message)
-//        {
-//            string toSend = (":" + Login_Name + "!" + Login_Name + "@" + Login_Name +
-//            ".tmi.twitch.tv PRIVMSG #" + Channel_To_Join + " :" + message);
-//            Writer.WriteLine(toSend);
-//            Writer.Flush();
-//        }
-
-//        /// <summary>
-//        /// Sends a ping periodically to keep the connection alive
-//        /// </summary>
-//        /// <returns>void</returns>
-//        public void SendPing()
-//        {
-//            Console.WriteLine("Sending PING....");
-//            Writer.WriteLine("PING :irc.twitch.tv");
-//            Writer.Flush();
-//        }
-
-//        /// <summary>
-//        /// Sends a pong in response to a PING to keep the connection alive
-//        /// </summary>
-//        /// <returns>void</returns>
-//        public void SendPong()
-//        {
-//            Console.WriteLine("Sending PONG....");
-//            Writer.WriteLine("PONG :irc.twitch.tv");
-//            Writer.Flush();
-//        }
-
-//        #endregion
-
-//        #region Command Handlers
-//        /// <summary>
-//        /// Handles the !age command. Returns info on the streamer's age.
-//        /// </summary>
-//        /// <returns>string</returns>
-//        public string Command_Age()
-//        {
-//            string s = "Streamer is X years old";
-//            return s;
-//        }
-
-//        /// <summary>
-//        /// Handles the !8ball command. Returns a Magic Eight Ball phrase
-//        /// </summary>
-//        /// <returns>string</returns>
-//        public string Command_MagicEightBall()
-//        {
-//            string s;
-//            Random random = new Random();
-//            int randomNumber = random.Next(0, 8);
-//            switch (randomNumber)
-//            {
-//                case 0:
-//                    s = "Signs point to yes";
-//                    break;
-//                case 1:
-//                    s = "My intuition says no";
-//                    break;
-//                case 2:
-//                    s = "Definitely, probably";
-//                    break;
-//                case 3:
-//                    s = "Doubtful, but hold out hope";
-//                    break;
-//                case 4:
-//                    s = "Absolutely not";
-//                    break;
-//                case 5:
-//                    s = "It's unclear right now. Ask again later.";
-//                    break;
-//                case 6:
-//                    s = "Chances are good";
-//                    break;
-//                default:
-//                    s = "That's a silly question. Ask something else";
-//                    break;
-//            }
-
-//            return s;
-//        }
-
-//        /// <summary>
-//        /// Handles the !discord command. Responds with a link to the streamer's discord.
-//        /// </summary>
-//        /// <returns>string</returns>
-//        public string Command_Discord()
-//        {
-//            string s = "Come join the Discord! <link>";
-
-//            return s;
-//        }
-//        #endregion
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"Hey there { e.ChatMessage.DisplayName }.");
 //    }
+//    else if (e.ChatMessage.Message.StartsWith("!uptime", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        var upTime = GetUpTime().Result;
+
+//        client.SendMessage(_twitchConfiguration.ChannelName, upTime?.ToString() ?? "Offline");
+//    }
+//    else if (e.ChatMessage.Message.StartsWith("!project", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"I'm working on {"revealing as many credentials to the internet as possible"}.");
+//    }
+//    else if (e.ChatMessage.Message.StartsWith("!rustyspoons", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"Surly likes rusty spoons");
+//    }
+
+//    else if (e.ChatMessage.Message.StartsWith("!surlyyoucantbeserious", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"Did you REALLY just clip that! !?!?!??");
+//    }
+
+//    else if (e.ChatMessage.Message.Contains("@surlydev", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"@SurlyDev did you clip that?!");
+//    }
+
+//    else if (e.ChatMessage.Message.Contains("!destructopup", StringComparison.InvariantCultureIgnoreCase))
+//    {
+//        client.SendMessage(_twitchConfiguration.ChannelName, $"Stop bloody destroying things!");
+//    }
+
+
+//    //else if (e.ChatMessage.Message.StartsWith("!instagram", StringComparison.InvariantCultureIgnoreCase))
+//    //{
+//    //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Instagram: {TwitchInfo.Instagram}");
+//    //}
+//    //else if (e.ChatMessage.Message.StartsWith("!twitter", StringComparison.InvariantCultureIgnoreCase))
+//    //{
+//    //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Twitter: {TwitchInfo.Twitter}");
+//    //}
+//    //else if (e.ChatMessage.Message.StartsWith("!blog", StringComparison.InvariantCultureIgnoreCase))
+//    //{
+//    //    client.SendMessage(TwitchInfo.ChannelName, $"My blog: {TwitchInfo.Blog}");
+//    //}
+//    //else if (e.ChatMessage.Message.StartsWith("!playlist", StringComparison.InvariantCultureIgnoreCase))
+//    //{
+//    //    client.SendMessage(TwitchInfo.ChannelName, $"Playlist for my live on Twitch: {TwitchInfo.Playlist}");
+//    //}
+//    //else if (e.ChatMessage.Message.StartsWith("!discord", StringComparison.InvariantCultureIgnoreCase))
+//    //{
+//    //    client.SendMessage(TwitchInfo.ChannelName, $"Vieni sul mio canale Discord: {TwitchInfo.Discord}");
+//    //}
 //}
+
+
