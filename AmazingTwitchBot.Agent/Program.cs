@@ -42,6 +42,18 @@ namespace AmazingTwitchBot.Agent
             //services.AddSingleton(messages);
 
             // ---- this block could (should) be extracted out into a setup class
+
+            services.Scan(scan => scan.FromAssemblyOf<IChatMessageRule>()
+                .AddClasses(classes => classes.AssignableTo<IChatMessageRule>())
+                    // We then specify what type we want to register these classes as.
+                    // In this case, we want to register the types as all of its implemented interfaces.
+                    // So if a type implements 3 interfaces; A, B, C, we'd end up with three separate registrations.
+                    .AsImplementedInterfaces()
+                    // And lastly, we specify the lifetime of these registrations.
+                    .WithSingletonLifetime()            
+            );
+            
+/*
             services.AddSingleton<List<IChatMessageRule>>();
             services.AddSingleton<IChatMessageRule, HelloRule>();
             services.AddSingleton<IChatMessageRule, ProjectRule>();
@@ -53,7 +65,7 @@ namespace AmazingTwitchBot.Agent
             services.AddSingleton<IChatMessageRule, TwitterRule>();
             services.AddSingleton<IChatMessageRule, BlogRule>();
             // ------------------------------------------------
-
+*/
 
             var serviceProvider = services.BuildServiceProvider();
 

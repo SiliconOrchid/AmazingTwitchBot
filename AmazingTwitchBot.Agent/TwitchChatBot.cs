@@ -37,7 +37,7 @@ namespace AmazingTwitchBot.Agent
             )
         {
             _twitchConfiguration = twitchConfiguration.Value;
-            _listChatMessageRules = listChatMessageRules;
+            _listChatMessageRules = listChatMessageRules.ToArray();
 
             _connectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername,_twitchConfiguration.BotToken);
 
