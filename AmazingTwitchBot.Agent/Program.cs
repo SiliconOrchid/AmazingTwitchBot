@@ -11,71 +11,82 @@ using AmazingTwitchBot.Agent.Rules;
 using AmazingTwitchBot.Agent.Rules.ChatCommands;
 using System.Reflection;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AmazingTwitchBot.Agent
 {
-    public class Program
-    {
-        // link to inspiration TwitchBot https://github.com/kasuken/SonequaBot (super straightforward/small example)
+	public class Program
+	{
+		// link to inspiration TwitchBot https://github.com/kasuken/SonequaBot (super straightforward/small example)
 
-        public static void Main(string[] args)
-        {
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets<Program>()
-                .Build();
-
-
-            IServiceCollection services = new ServiceCollection();
-            services.Configure<TwitchConfiguration>(configuration.GetSection(nameof(TwitchConfiguration)));
-            services.Configure<ChatConfiguration>(configuration.GetSection(nameof(ChatConfiguration)));
-            services.AddSingleton<TwitchChatBot>();
+		public static void Main(string[] args)
+		{
+			IConfiguration configuration = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+				.AddUserSecrets<Program>()
+				.Build();
 
 
-            //var messages = Assembly.GetAssembly(typeof(IChatMessageRule))
-            //    .GetTypes()
-            //    .Where(x => x.Namespace == "AmazingTwitchBot.Agent.Rules.ChatCommands")
-            //    .Where(x => x.IsClass)
-            //    .Select(x => (IChatMessageRule)Activator.CreateInstance(x))
-            //    ;
-
-            //services.AddSingleton(messages);
-
-            // ---- this block could (should) be extracted out into a setup class
-            services.AddSingleton<List<IChatMessageRule>>();
-            services.AddSingleton<IChatMessageRule, HelloRule>();
-            services.AddSingleton<IChatMessageRule, ProjectRule>();
-            services.AddSingleton<IChatMessageRule, RustySpoonsRule>();
-            services.AddSingleton<IChatMessageRule, SurlyYouCantBeSeriousRule>();
-            services.AddSingleton<IChatMessageRule, SurlyDevClipRule>();
-            services.AddSingleton<IChatMessageRule, DestructoPupRule>();
-            services.AddSingleton<IChatMessageRule, InstagramRule>();
-            services.AddSingleton<IChatMessageRule, TwitterRule>();
-            services.AddSingleton<IChatMessageRule, BlogRule>();
-            // ------------------------------------------------
+			IServiceCollection services = new ServiceCollection();
+			services.Configure<TwitchConfiguration>(configuration.GetSection(nameof(TwitchConfiguration)));
+			services.Configure<ChatConfiguration>(configuration.GetSection(nameof(ChatConfiguration)));
+			services.AddSingleton<TwitchChatBot>();
 
 
-            var serviceProvider = services.BuildServiceProvider();
+			var messages = Assembly.GetAssembly(typeof(IChatMessageRule))
+				.GetTypes()
+				.Where(x => x.Namespace == "AmazingTwitchBot.Agent.Rules.ChatCommands")
+				.Where(x => x.IsClass)
+				.Where(x => !x.IsAbstract)
+				.Select(x => x);
+
+
+			foreach (var messageType in messages)
+			{
+				services.AddSingleton(serviceProvider => (IChatMessageRule)ActivatorUtilities.CreateInstance(serviceProvider, messageType));
+			}
+			
 
 
 
 
+			//services.AddSingleton(messages);
 
-        // https://stackoverflow.com/questions/31863981/how-to-resolve-instance-inside-configureservices-in-asp-net-core
-        //Foo foo = serviceProvider.GetService<Foo>();
-        //ConfigFoo configfoo = serviceProvider.GetService<IOptions<ConfigFoo>>().Value;
+			// ---- this block could (should) be extracted out into a setup class
+			//services.AddSingleton<List<IChatMessageRule>>();
+			//services.AddSingleton<IChatMessageRule, HelloRule>();
+			//services.AddSingleton<IChatMessageRule, ProjectRule>();
+			//services.AddSingleton<IChatMessageRule, RustySpoonsRule>();
+			//services.AddSingleton<IChatMessageRule, SurlyYouCantBeSeriousRule>();
+			//services.AddSingleton<IChatMessageRule, SurlyDevClipRule>();
+			//services.AddSingleton<IChatMessageRule, DestructoPupRule>();
+			//services.AddSingleton<IChatMessageRule, InstagramRule>();
+			//services.AddSingleton<IChatMessageRule, TwitterRule>();
+			//services.AddSingleton<IChatMessageRule, BlogRule>();
+			// ------------------------------------------------
 
-        //TwitchConfiguration twitchConfiguration = serviceProvider.GetService<IOptions<TwitchConfiguration>>().Value;
 
-        TwitchChatBot twitchChatBot = serviceProvider.GetService<TwitchChatBot>();
+			var serviceProvider = services.BuildServiceProvider();
 
-            twitchChatBot.Connect();
-            Console.ReadLine(); // we do this to pause the console app, so it doesn't just run and exit immedietely.
 
-            twitchChatBot.Disconnect();
 
-        }
-    }
+
+
+		// https://stackoverflow.com/questions/31863981/how-to-resolve-instance-inside-configureservices-in-asp-net-core
+		//Foo foo = serviceProvider.GetService<Foo>();
+		//ConfigFoo configfoo = serviceProvider.GetService<IOptions<ConfigFoo>>().Value;
+
+		//TwitchConfiguration twitchConfiguration = serviceProvider.GetService<IOptions<TwitchConfiguration>>().Value;
+
+		TwitchChatBot twitchChatBot = serviceProvider.GetService<TwitchChatBot>();
+
+			twitchChatBot.Connect();
+			Console.ReadLine(); // we do this to pause the console app, so it doesn't just run and exit immedietely.
+
+			twitchChatBot.Disconnect();
+
+		}
+	}
 }
 
 
