@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace AmazingTwitchBot.Agent.Rules
+namespace AmazingTwitchBot.Agent.Rules.ChatCommands
 {
     public class HelloRule : IChatMessageRule
     {

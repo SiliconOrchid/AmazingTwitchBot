@@ -1,8 +1,9 @@
-﻿using TwitchLib.Client.Events;
+﻿using AmazingTwitchBot.Agent.Rules.ChatCommands;
+using TwitchLib.Client.Events;
 
 namespace AmazingTwitchBot.Agent.Rules
 {
-    public interface IChatMessageRule
+    public interface IChatMessageRule 
     {
         bool IsTextMatched(string chatMessage);
         string ReturnedMessage(OnMessageReceivedArgs e);
