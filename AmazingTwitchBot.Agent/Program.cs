@@ -2,16 +2,12 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 
 using AmazingTwitchBot.Agent.Models.Configuration;
-using System.Collections.Generic;
 using AmazingTwitchBot.Agent.Rules;
-using AmazingTwitchBot.Agent.Rules.ChatCommands;
 using System.Reflection;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace AmazingTwitchBot.Agent
 {
