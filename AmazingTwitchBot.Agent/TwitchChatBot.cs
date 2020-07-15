@@ -11,14 +11,16 @@ using TwitchLib.Client.Models;
 
 using AmazingTwitchBot.Agent.Models.Configuration;
 using AmazingTwitchBot.Agent.Rules;
-
+using Microsoft.Extensions.Logging;
 
 namespace AmazingTwitchBot.Agent
 {
 
     public class TwitchChatBot
     {
+        private readonly IOptions<TwitchConfiguration> twitchConfiguration;
         private readonly IEnumerable<IChatMessageRule> _listChatMessageRules;
+        private readonly ILogger<TwitchChatBot> _logger;
         private readonly ConnectionCredentials _connectionCredentials; 
         private readonly TwitchConfiguration _twitchConfiguration;
 
@@ -33,12 +35,14 @@ namespace AmazingTwitchBot.Agent
 
         public TwitchChatBot(
             IOptions<TwitchConfiguration> twitchConfiguration,
-            IEnumerable<IChatMessageRule> listChatMessageRules
+            IEnumerable<IChatMessageRule> listChatMessageRules,
+            ILogger<TwitchChatBot> logger
             )
         {
             _twitchConfiguration = twitchConfiguration.Value;
+            this.twitchConfiguration = twitchConfiguration;
             _listChatMessageRules = listChatMessageRules;
-
+            _logger = logger;
             _connectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername,_twitchConfiguration.BotToken);
 
 
@@ -124,12 +128,12 @@ namespace AmazingTwitchBot.Agent
 
         private void Client_OnConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
         {
-            Console.WriteLine(e.Error.Message);
+            _logger.LogError($"ConnectionError: {e.Error.Message}");
         }
 
         private void Client_OnLog(object sender, TwitchLib.Client.Events.OnLogArgs e)
         {
-            Console.WriteLine(e.Data);
+            _logger.LogInformation($"Client_OnLog: {e.Data}");
         }
 
 
@@ -145,7 +149,7 @@ namespace AmazingTwitchBot.Agent
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError($"Error adding user to userlist", ex);
             }
         }
 
@@ -156,7 +160,7 @@ namespace AmazingTwitchBot.Agent
 
         internal void Disconnect()
         {
-            Console.WriteLine("Disconnecting...");
+            _logger.LogInformation("Disconnecting...");
         }
 
     }
