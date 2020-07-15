@@ -10,8 +10,6 @@ namespace AmazingTwitchBot.Agent.Rules.ChatCommands
 
         public ChatBase(IOptions<ChatConfiguration> chatConfiguration)
         {
-
-
             _chatConfiguration = chatConfiguration.Value;
         }
 
@@ -22,3 +20,5 @@ namespace AmazingTwitchBot.Agent.Rules.ChatCommands
 
     }
 }
+
+

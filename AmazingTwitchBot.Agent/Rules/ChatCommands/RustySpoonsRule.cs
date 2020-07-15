@@ -7,7 +7,7 @@ namespace AmazingTwitchBot.Agent.Rules.ChatCommands
     {
         public bool IsTextMatched(string chatMessage)
         {
-            return chatMessage.StartsWith("!rustyspoons ", StringComparison.InvariantCultureIgnoreCase);
+            return chatMessage.StartsWith("!rustyspoons", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public string ReturnedMessage(TwitchLib.Client.Events.OnMessageReceivedArgs e)

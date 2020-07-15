@@ -9,6 +9,7 @@ namespace AmazingTwitchBot.Agent.Rules.ChatCommands
 
     public class BlogRule : ChatBase
     {
+
         public BlogRule(IOptions<ChatConfiguration> chatConfiguration) : base(chatConfiguration) { }
 
         public override bool IsTextMatched(string chatMessage)

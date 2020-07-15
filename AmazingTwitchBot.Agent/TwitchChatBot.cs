@@ -18,7 +18,7 @@ namespace AmazingTwitchBot.Agent
 
     public class TwitchChatBot
     {
-        private readonly List<IChatMessageRule> _listChatMessageRules;
+        private readonly IEnumerable<IChatMessageRule> _listChatMessageRules;
         private readonly ConnectionCredentials _connectionCredentials; 
         private readonly TwitchConfiguration _twitchConfiguration;
 
@@ -33,7 +33,7 @@ namespace AmazingTwitchBot.Agent
 
         public TwitchChatBot(
             IOptions<TwitchConfiguration> twitchConfiguration,
-            List<IChatMessageRule> listChatMessageRules
+            IEnumerable<IChatMessageRule> listChatMessageRules
             )
         {
             _twitchConfiguration = twitchConfiguration.Value;
@@ -42,14 +42,6 @@ namespace AmazingTwitchBot.Agent
             _connectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername,_twitchConfiguration.BotToken);
 
 
-            // ---- this is the previous way of adding in rules
-            //_listChatMessageRules = new List<IChatMessageRule>();
-            //_listChatMessageRules.Add(new HelloRule() );
-            //_listChatMessageRules.Add(new ProjectRule());
-            //_listChatMessageRules.Add(new RustySpoonsRule());
-            //_listChatMessageRules.Add(new SurlyYouCantBeSeriousRule());
-            //_listChatMessageRules.Add(new SurlyDevClipRule());
-            //_listChatMessageRules.Add(new DestructoPupRule());
 
         }
 
@@ -170,65 +162,5 @@ namespace AmazingTwitchBot.Agent
     }
 }
 
-
-///FOR US TO PLAY WITH NEXT WEEK:
-//private void Client_OnMessageReceived(object sender, TwitchLib.Client.Events.OnMessageReceivedArgs e)
-//{
-//    if (e.ChatMessage.Message.StartsWith("hi", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"Hey there { e.ChatMessage.DisplayName }.");
-//    }
-//    else if (e.ChatMessage.Message.StartsWith("!uptime", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        var upTime = GetUpTime().Result;
-
-//        client.SendMessage(_twitchConfiguration.ChannelName, upTime?.ToString() ?? "Offline");
-//    }
-//    else if (e.ChatMessage.Message.StartsWith("!project", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"I'm working on {"revealing as many credentials to the internet as possible"}.");
-//    }
-//    else if (e.ChatMessage.Message.StartsWith("!rustyspoons", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"Surly likes rusty spoons");
-//    }
-
-//    else if (e.ChatMessage.Message.StartsWith("!surlyyoucantbeserious", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"Did you REALLY just clip that! !?!?!??");
-//    }
-
-//    else if (e.ChatMessage.Message.Contains("@surlydev", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"@SurlyDev did you clip that?!");
-//    }
-
-//    else if (e.ChatMessage.Message.Contains("!destructopup", StringComparison.InvariantCultureIgnoreCase))
-//    {
-//        client.SendMessage(_twitchConfiguration.ChannelName, $"Stop bloody destroying things!");
-//    }
-
-
-//    //else if (e.ChatMessage.Message.StartsWith("!instagram", StringComparison.InvariantCultureIgnoreCase))
-//    //{
-//    //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Instagram: {TwitchInfo.Instagram}");
-//    //}
-//    //else if (e.ChatMessage.Message.StartsWith("!twitter", StringComparison.InvariantCultureIgnoreCase))
-//    //{
-//    //    client.SendMessage(TwitchInfo.ChannelName, $"Follow me on Twitter: {TwitchInfo.Twitter}");
-//    //}
-//    //else if (e.ChatMessage.Message.StartsWith("!blog", StringComparison.InvariantCultureIgnoreCase))
-//    //{
-//    //    client.SendMessage(TwitchInfo.ChannelName, $"My blog: {TwitchInfo.Blog}");
-//    //}
-//    //else if (e.ChatMessage.Message.StartsWith("!playlist", StringComparison.InvariantCultureIgnoreCase))
-//    //{
-//    //    client.SendMessage(TwitchInfo.ChannelName, $"Playlist for my live on Twitch: {TwitchInfo.Playlist}");
-//    //}
-//    //else if (e.ChatMessage.Message.StartsWith("!discord", StringComparison.InvariantCultureIgnoreCase))
-//    //{
-//    //    client.SendMessage(TwitchInfo.ChannelName, $"Vieni sul mio canale Discord: {TwitchInfo.Discord}");
-//    //}
-//}
 
 

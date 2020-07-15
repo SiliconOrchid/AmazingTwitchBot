@@ -9,6 +9,8 @@ using AmazingTwitchBot.Agent.Models.Configuration;
 using System.Collections.Generic;
 using AmazingTwitchBot.Agent.Rules;
 using AmazingTwitchBot.Agent.Rules.ChatCommands;
+using System.Reflection;
+using System.Linq;
 
 namespace AmazingTwitchBot.Agent
 {
@@ -29,6 +31,15 @@ namespace AmazingTwitchBot.Agent
             services.Configure<ChatConfiguration>(configuration.GetSection(nameof(ChatConfiguration)));
             services.AddSingleton<TwitchChatBot>();
 
+
+            //var messages = Assembly.GetAssembly(typeof(IChatMessageRule))
+            //    .GetTypes()
+            //    .Where(x => x.Namespace == "AmazingTwitchBot.Agent.Rules.ChatCommands")
+            //    .Where(x => x.IsClass)
+            //    .Select(x => (IChatMessageRule)Activator.CreateInstance(x))
+            //    ;
+
+            //services.AddSingleton(messages);
 
             // ---- this block could (should) be extracted out into a setup class
             services.AddSingleton<List<IChatMessageRule>>();
