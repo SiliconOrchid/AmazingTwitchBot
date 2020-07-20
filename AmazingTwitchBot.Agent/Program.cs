@@ -33,8 +33,7 @@ namespace AmazingTwitchBot.Agent
 				.GetTypes()
 				.Where(x => x.Namespace == "AmazingTwitchBot.Agent.Rules.ChatCommands")
 				.Where(x => x.IsClass)
-				.Where(x => !x.IsAbstract)
-				.Select(x => x);
+				.Where(x => !x.IsAbstract);
 
 
 			foreach (var messageType in messages)
@@ -42,25 +41,6 @@ namespace AmazingTwitchBot.Agent
 				services.AddSingleton(serviceProvider => (IChatMessageRule)ActivatorUtilities.CreateInstance(serviceProvider, messageType));
 			}
 			
-
-
-
-
-			//services.AddSingleton(messages);
-
-			// ---- this block could (should) be extracted out into a setup class
-			//services.AddSingleton<List<IChatMessageRule>>();
-			//services.AddSingleton<IChatMessageRule, HelloRule>();
-			//services.AddSingleton<IChatMessageRule, ProjectRule>();
-			//services.AddSingleton<IChatMessageRule, RustySpoonsRule>();
-			//services.AddSingleton<IChatMessageRule, SurlyYouCantBeSeriousRule>();
-			//services.AddSingleton<IChatMessageRule, SurlyDevClipRule>();
-			//services.AddSingleton<IChatMessageRule, DestructoPupRule>();
-			//services.AddSingleton<IChatMessageRule, InstagramRule>();
-			//services.AddSingleton<IChatMessageRule, TwitterRule>();
-			//services.AddSingleton<IChatMessageRule, BlogRule>();
-			// ------------------------------------------------
-
 
 			var serviceProvider = services.BuildServiceProvider();
 
