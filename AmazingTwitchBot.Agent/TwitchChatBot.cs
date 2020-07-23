@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 using TwitchLib.Api;
 using TwitchLib.Client;
@@ -19,7 +20,8 @@ namespace AmazingTwitchBot.Agent
     public class TwitchChatBot
     {
         private readonly IEnumerable<IChatMessageRule> _listChatMessageRules;
-        private readonly ConnectionCredentials _connectionCredentials; 
+        private readonly ILogger<TwitchChatBot> _logger;
+        private readonly ConnectionCredentials _twitchLibConnectionCredentials;
         private readonly TwitchConfiguration _twitchConfiguration;
 
         private TwitchClient _twitchLibClient = new TwitchClient();
@@ -33,16 +35,14 @@ namespace AmazingTwitchBot.Agent
 
         public TwitchChatBot(
             IOptions<TwitchConfiguration> twitchConfiguration,
-            IEnumerable<IChatMessageRule> listChatMessageRules
+            IEnumerable<IChatMessageRule> listChatMessageRules,
+            ILogger<TwitchChatBot> logger
             )
         {
             _twitchConfiguration = twitchConfiguration.Value;
             _listChatMessageRules = listChatMessageRules.ToArray();
-
-            _connectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername,_twitchConfiguration.BotToken);
-
-
-
+            _logger = logger;
+            _twitchLibConnectionCredentials = new ConnectionCredentials(_twitchConfiguration.BotUsername, _twitchConfiguration.BotToken);
         }
 
 
@@ -64,7 +64,7 @@ namespace AmazingTwitchBot.Agent
             _twitchLibClient.OnUserJoined += Client_OnUserJoined;
             _twitchLibClient.OnUserLeft += Client_OnUserLeft;
 
-            _twitchLibClient.Initialize(_connectionCredentials, _twitchConfiguration.ChannelName);
+            _twitchLibClient.Initialize(_twitchLibConnectionCredentials, _twitchConfiguration.ChannelName);
             _twitchLibClient.Connect();
 
             _twitchLibClient.OnConnected += Client_OnConnected;
@@ -94,7 +94,7 @@ namespace AmazingTwitchBot.Agent
         {
             IChatMessageRule chatmessageRule = _listChatMessageRules.FirstOrDefault(rule => rule.IsTextMatched(e.ChatMessage.Message));
 
-            if(!(chatmessageRule is null))
+            if (!(chatmessageRule is null))
             {
                 string messageReturnedFromRule = chatmessageRule.ReturnedMessage(e);
                 _twitchLibClient.SendMessage(_twitchConfiguration.ChannelName, messageReturnedFromRule);
@@ -124,12 +124,12 @@ namespace AmazingTwitchBot.Agent
 
         private void Client_OnConnectionError(object sender, TwitchLib.Client.Events.OnConnectionErrorArgs e)
         {
-            Console.WriteLine(e.Error.Message);
+            _logger.LogError($"ConnectionError: {e.Error.Message}");
         }
 
         private void Client_OnLog(object sender, TwitchLib.Client.Events.OnLogArgs e)
         {
-            Console.WriteLine(e.Data);
+            _logger.LogInformation($"Client_OnLog: {e.Data}");
         }
 
 
@@ -145,7 +145,7 @@ namespace AmazingTwitchBot.Agent
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError($"Error adding user to userlist", ex);
             }
         }
 
@@ -156,7 +156,7 @@ namespace AmazingTwitchBot.Agent
 
         internal void Disconnect()
         {
-            Console.WriteLine("Disconnecting...");
+            _logger.LogInformation("Disconnecting...");
         }
 
     }
