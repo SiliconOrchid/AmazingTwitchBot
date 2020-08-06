@@ -14,13 +14,13 @@ using AmazingTwitchBot.Agent.Models.Configuration;
 using AmazingTwitchBot.Agent.Rules;
 
 
-namespace AmazingTwitchBot.Agent
+namespace AmazingTwitchBot.Agent.Services
 {
 
-    public class TwitchChatBot
+    public class TwitchChatBotService
     {
         private readonly IEnumerable<IChatMessageRule> _listChatMessageRules;
-        private readonly ILogger<TwitchChatBot> _logger;
+        private readonly ILogger<TwitchChatBotService> _logger;
         private readonly ConnectionCredentials _twitchLibConnectionCredentials;
         private readonly TwitchConfiguration _twitchConfiguration;
 
@@ -33,10 +33,10 @@ namespace AmazingTwitchBot.Agent
 
 
 
-        public TwitchChatBot(
+        public TwitchChatBotService(
             IOptions<TwitchConfiguration> twitchConfiguration,
             IEnumerable<IChatMessageRule> listChatMessageRules,
-            ILogger<TwitchChatBot> logger
+            ILogger<TwitchChatBotService> logger
             )
         {
             _twitchConfiguration = twitchConfiguration.Value;

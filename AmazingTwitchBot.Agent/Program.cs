@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using AmazingTwitchBot.Agent.Models.Configuration;
 using AmazingTwitchBot.Agent.Rules;
-
+using AmazingTwitchBot.Agent.Services;
 
 namespace AmazingTwitchBot.Agent
 {
@@ -45,7 +45,11 @@ namespace AmazingTwitchBot.Agent
             services.AddOptions();
             services.Configure<TwitchConfiguration>(hostContext.Configuration.GetSection(nameof(TwitchConfiguration)));
             services.Configure<ChatConfiguration>(hostContext.Configuration.GetSection(nameof(ChatConfiguration)));
-            services.AddSingleton<TwitchChatBot>();
+            services.Configure<Luisconfiguration>(hostContext.Configuration.GetSection(nameof(Luisconfiguration)));
+            services.AddSingleton<TwitchChatBotService>();
+
+            services.AddHttpClient<LuisService>();
+
 
             services.Scan(scan => scan.FromAssemblyOf<IChatMessageRule>()
                 .AddClasses(classes => classes.AssignableTo<IChatMessageRule>())

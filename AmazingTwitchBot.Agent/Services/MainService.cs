@@ -1,14 +1,16 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using AmazingTwitchBot.Agent.Services;
 
-namespace AmazingTwitchBot.Agent
+
+namespace AmazingTwitchBot.Agent.Services
 {
     public class MainService : IHostedService
     {
-        private readonly TwitchChatBot _twitchChatBot;
+        private readonly TwitchChatBotService _twitchChatBot;
 
-        public MainService(TwitchChatBot twitchChatBot)
+        public MainService(TwitchChatBotService twitchChatBot)
         {
             _twitchChatBot = twitchChatBot;
         }
